@@ -100,7 +100,7 @@ exports.verifyOTP = async (req, res) => {
     res.status(500).send({ message: e.name });
   }
 };
-
+//=====================update profile====================//
 exports.updateProfile = async (req, res) => {
   try {
     const user = await userdb.findById(req.user._id);
@@ -130,6 +130,19 @@ exports.updateProfile = async (req, res) => {
           res.status(500).send({ message: "Something bad happened" });
         }
       }
+    } else {
+      res.status(500).send({ message: "Something bad happened" });
+    }
+  } catch (e) {
+    res.status(500).send({ message: e.name });
+  }
+};
+//==========================get profile=====================================//
+exports.getProfile = async (req, res) => {
+  try {
+    const myProfile = await userdb.findById(req.user._id);
+    if (myProfile) {
+      res.status(200).send(myProfile);
     } else {
       res.status(500).send({ message: "Something bad happened" });
     }
