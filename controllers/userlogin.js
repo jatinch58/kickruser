@@ -153,6 +153,8 @@ exports.getProfile = async (req, res) => {
     res.status(500).send({ message: e.name });
   }
 };
+
+//===================get product by sub category====================//
 exports.getProductBySubCategory = async (req, res) => {
   try {
     const product = await productdb.find({
@@ -168,6 +170,7 @@ exports.getProductBySubCategory = async (req, res) => {
     res.status(500).send({ message: e.name });
   }
 };
+///======================get sub category==============================//
 exports.getSubCategory = async (req, res) => {
   try {
     const subCategory = await subCategorydb.find(
@@ -185,6 +188,7 @@ exports.getSubCategory = async (req, res) => {
     res.status(500).send({ message: e.name });
   }
 };
+//==================get category=============================//
 exports.getCategory = async (req, res) => {
   try {
     const category = await categorydb.find(
@@ -196,6 +200,22 @@ exports.getCategory = async (req, res) => {
     } else {
       res.status(500).send({
         message: "Something bad happened",
+      });
+    }
+  } catch (e) {
+    res.status(500).send({ message: e.name });
+  }
+};
+
+//====================get product by id=====================//
+exports.getProductById = async (req, res) => {
+  try {
+    const product = await productdb.findById(req.params.id);
+    if (product) {
+      res.status(200).send(product);
+    } else {
+      res.status(404).send({
+        message: "No product found of id: " + req.params.id,
       });
     }
   } catch (e) {
