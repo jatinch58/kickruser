@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const productdb = require("../models/products");
 const subCategorydb = require("../models/subCategory");
 const categorydb = require("../models/category");
+const cartdb = require("../models/cart");
 //===================================================user login========================================//
 exports.loginUser = (req, res) => {
   try {
@@ -243,6 +244,83 @@ exports.getProductById = async (req, res) => {
       res.status(404).send({
         message: "No product found of id: " + req.params.id,
       });
+    }
+  } catch (e) {
+    res.status(500).send({ message: e.name });
+  }
+};
+//=====================================give review to product=========================//
+exports.giveReview = async (req, res) => {
+  try {
+    const reviewSchema = Joi.object()
+      .keys({
+        review: Joi.number().max(5).min(1).required(),
+      })
+      .required();
+    const validate = reviewSchema.validate(req.body);
+    if (validate.error) {
+      res.status(400).send({ message: validate.error.details[0].message });
+    } else {
+      const product = await productdb.findOneAndUpdate(
+        { _id: req.params.id, reviewedBy: { $nin: [req.user._id] } },
+        {
+          $inc: { numberOfReviews: 1, productReview: req.body.review },
+          $push: { reviewedBy: req.user._id },
+        }
+      );
+      if (product) {
+        res.status(200).send({
+          message: "You have given " + req.body.review + " star sucessfully",
+        });
+      } else {
+        res.status(409).send({
+          message: "You have already given review to this product",
+        });
+      }
+    }
+  } catch (e) {
+    res.status(500).send({ message: e.name });
+  }
+};
+//=============================add to cart==========================================//
+exports.addToCart = async (req, res) => {
+  try {
+    const cartSchema = Joi.object()
+      .keys({
+        productId: Joi.string().hex().length(24).required(),
+      })
+      .required();
+    const validate = cartSchema.validate(req.body);
+    if (validate.error) {
+      res.status(400).send({ message: validate.error.details[0].message });
+    } else {
+      cartdb
+        .findOneAndUpdate(
+          { cartBy: req.user._id },
+          { cartBy: req.user._id },
+          { upsert: true, new: true }
+        )
+        .exec(function (err, doc) {
+          if (err) {
+            res.status(500).send({ message: err.name });
+          } else {
+            const item = doc.cart.findIndex(
+              (item) => item.productId == req.body.productId
+            );
+            if (item !== -1) {
+              doc.cart[item].quantity += 1;
+            } else {
+              doc.cart.push({ productId: req.body.productId, quantity: 1 });
+            }
+
+            doc.save().then((e) => {
+              res.status(200).send({
+                message: "Item added to the cart sucessfully",
+                cart: e,
+              });
+            });
+          }
+        });
     }
   } catch (e) {
     res.status(500).send({ message: e.name });

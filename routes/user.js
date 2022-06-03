@@ -14,4 +14,6 @@ router.get(
 router.get("/user/getCategory", verifyToken, user.getCategory);
 router.get("/user/getSubCategory/:category", verifyToken, user.getSubCategory);
 router.get("/user/getProductById/:id", verifyToken, user.getProductById);
+router.put("/user/giveReview/:id", verifyToken, user.giveReview);
+router.put("/user/addToCart", verifyToken, user.addToCart);
 module.exports = router;

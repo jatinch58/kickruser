@@ -52,6 +52,10 @@ const productSchema = new Schema(
       type: Number,
       default: 0,
     },
+    totalReview: {
+      type: Number,
+      default: 0,
+    },
     reviewedBy: [
       {
         type: Schema.Types.ObjectId,
