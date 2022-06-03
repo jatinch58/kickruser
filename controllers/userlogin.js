@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const productdb = require("../models/products");
 const subCategorydb = require("../models/subCategory");
 const categorydb = require("../models/category");
-////////////////===================user login================================///////////
+//===================================================user login========================================//
 exports.loginUser = (req, res) => {
   try {
     const { body } = req;
@@ -103,7 +103,7 @@ exports.verifyOTP = async (req, res) => {
     res.status(500).send({ message: e.name });
   }
 };
-//=============================================update profile====================================//
+//=============================================update profile======================================//
 exports.updateProfile = async (req, res) => {
   try {
     const user = await userdb.findById(req.user._id);
@@ -143,7 +143,12 @@ exports.updateProfile = async (req, res) => {
 //====================================get profile================================================//
 exports.getProfile = async (req, res) => {
   try {
-    const myProfile = await userdb.findById(req.user._id);
+    const myProfile = await userdb.findById(req.user._id, {
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+      _id: 0,
+    });
     if (myProfile) {
       res.status(200).send(myProfile);
     } else {
@@ -153,13 +158,29 @@ exports.getProfile = async (req, res) => {
     res.status(500).send({ message: e.name });
   }
 };
-//=========================get product by sub category==================================//
+//===============================get product by sub category========================================//
 exports.getProductBySubCategory = async (req, res) => {
   try {
-    const product = await productdb.find({
-      productCategory: req.params.category,
-      productSubCategory: req.params.subCategory,
-    });
+    const product = await productdb.find(
+      {
+        productCategory: req.params.category,
+        productSubCategory: req.params.subCategory,
+      },
+      {
+        __v: 0,
+        reviewedBy: 0,
+        productReview: 0,
+        numberOfReviews: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        demolink: 0,
+        productDescription: 0,
+        productSubCategory: 0,
+        productImgUrl: 0,
+        productCategory: 0,
+        productStock: 0,
+      }
+    );
     if (product) {
       res.status(200).send(product);
     } else {
@@ -169,12 +190,12 @@ exports.getProductBySubCategory = async (req, res) => {
     res.status(500).send({ message: e.name });
   }
 };
-///=======================================get sub category==========================================//
+//=======================================get sub category==========================================//
 exports.getSubCategory = async (req, res) => {
   try {
     const subCategory = await subCategorydb.find(
       { categoryName: req.params.category },
-      { _id: 0, __v: 0, createdAt: 0, updatedAt: 0 }
+      { _id: 0, __v: 0, createdAt: 0, updatedAt: 0, categoryName: 0 }
     );
     if (subCategory) {
       res.status(200).send(subCategory);
@@ -208,7 +229,14 @@ exports.getCategory = async (req, res) => {
 //========================================get product by id==========================================//
 exports.getProductById = async (req, res) => {
   try {
-    const product = await productdb.findById(req.params.id);
+    const product = await productdb.findById(req.params.id, {
+      reviewedBy: 0,
+      createdAt: 0,
+      updatedAt: 0,
+      __v: 0,
+      productCategory: 0,
+      productSubCategory: 0,
+    });
     if (product) {
       res.status(200).send(product);
     } else {
