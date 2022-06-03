@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const productdb = require("../models/products");
 const subCategorydb = require("../models/subCategory");
 const categorydb = require("../models/category");
-////////////////===================user login======================///////////
+////////////////===================user login================================///////////
 exports.loginUser = (req, res) => {
   try {
     const { body } = req;
@@ -26,7 +26,7 @@ exports.loginUser = (req, res) => {
             req.body.phone +
             "/AUTOGEN"
         )
-        .then(function (response) {
+        .then((response) => {
           res.status(200).send(response.data);
         })
         .catch((er) => {
@@ -37,7 +37,7 @@ exports.loginUser = (req, res) => {
     res.status(500).send({ message: er.name });
   }
 };
-///==================verify otp===============//
+///==========================================verify otp====================================//
 exports.verifyOTP = async (req, res) => {
   try {
     const { body } = req;
@@ -103,7 +103,7 @@ exports.verifyOTP = async (req, res) => {
     res.status(500).send({ message: e.name });
   }
 };
-//=====================update profile====================//
+//=============================================update profile====================================//
 exports.updateProfile = async (req, res) => {
   try {
     const user = await userdb.findById(req.user._id);
@@ -130,31 +130,30 @@ exports.updateProfile = async (req, res) => {
         if (updateUserProfile) {
           res.status(200).send({ message: "Profile updated sucessfully" });
         } else {
-          res.status(500).send({ message: "Something bad happened" });
+          res.status(404).send({ message: req.user._id + " not found" });
         }
       }
     } else {
-      res.status(500).send({ message: "Something bad happened" });
+      res.status(404).send({ message: req.user._id + " not found" });
     }
   } catch (e) {
     res.status(500).send({ message: e.name });
   }
 };
-//==========================get profile=====================================//
+//====================================get profile================================================//
 exports.getProfile = async (req, res) => {
   try {
     const myProfile = await userdb.findById(req.user._id);
     if (myProfile) {
       res.status(200).send(myProfile);
     } else {
-      res.status(500).send({ message: "Something bad happened" });
+      res.status(404).send({ message: req.user._id + " not found" });
     }
   } catch (e) {
     res.status(500).send({ message: e.name });
   }
 };
-
-//===================get product by sub category====================//
+//=========================get product by sub category==================================//
 exports.getProductBySubCategory = async (req, res) => {
   try {
     const product = await productdb.find({
@@ -164,13 +163,13 @@ exports.getProductBySubCategory = async (req, res) => {
     if (product) {
       res.status(200).send(product);
     } else {
-      res.status(500).send({ message: "Something bad happened" });
+      res.status(404).send({ message: "Not found" });
     }
   } catch (e) {
     res.status(500).send({ message: e.name });
   }
 };
-///======================get sub category==============================//
+///=======================================get sub category==========================================//
 exports.getSubCategory = async (req, res) => {
   try {
     const subCategory = await subCategorydb.find(
@@ -188,7 +187,7 @@ exports.getSubCategory = async (req, res) => {
     res.status(500).send({ message: e.name });
   }
 };
-//==================get category=============================//
+//===========================================get category============================================//
 exports.getCategory = async (req, res) => {
   try {
     const category = await categorydb.find(
@@ -198,16 +197,15 @@ exports.getCategory = async (req, res) => {
     if (category) {
       res.status(200).send(category);
     } else {
-      res.status(500).send({
-        message: "Something bad happened",
+      res.status(404).send({
+        message: "Not found",
       });
     }
   } catch (e) {
     res.status(500).send({ message: e.name });
   }
 };
-
-//====================get product by id=====================//
+//========================================get product by id==========================================//
 exports.getProductById = async (req, res) => {
   try {
     const product = await productdb.findById(req.params.id);

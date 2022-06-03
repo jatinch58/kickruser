@@ -11,7 +11,7 @@ router.get(
   verifyToken,
   user.getProductBySubCategory
 );
-router.get("/user/getSubCategory/:category", verifyToken, user.getSubCategory);
 router.get("/user/getCategory", verifyToken, user.getCategory);
+router.get("/user/getSubCategory/:category", verifyToken, user.getSubCategory);
 router.get("/user/getProductById/:id", verifyToken, user.getProductById);
 module.exports = router;
