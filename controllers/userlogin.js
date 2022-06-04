@@ -19,23 +19,22 @@ exports.loginUser = (req, res) => {
       .required();
     const result = phoneSchema.validate(body);
     if (result.error) {
-      res.status(400).send({ message: result.error.details[0].message });
-    } else {
-      axios
-        .get(
-          "https://2factor.in/API/V1/c7573668-cfde-11ea-9fa5-0200cd936042/SMS/" +
-            req.body.phone +
-            "/AUTOGEN"
-        )
-        .then((response) => {
-          res.status(200).send(response.data);
-        })
-        .catch((er) => {
-          res.status(500).send({ message: er.name });
-        });
+      return res.status(400).send({ message: result.error.details[0].message });
     }
+    axios
+      .get(
+        "https://2factor.in/API/V1/c7573668-cfde-11ea-9fa5-0200cd936042/SMS/" +
+          req.body.phone +
+          "/AUTOGEN"
+      )
+      .then((response) => {
+        return res.status(200).send(response.data);
+      })
+      .catch((er) => {
+        return res.status(500).send({ message: er.name });
+      });
   } catch (er) {
-    res.status(500).send({ message: er.name });
+    return res.status(500).send({ message: er.name });
   }
 };
 ///==========================================verify otp====================================//
@@ -53,55 +52,57 @@ exports.verifyOTP = async (req, res) => {
       .required();
     const result = otpSchema.validate(body);
     if (result.error) {
-      res.status(400).send({ message: result.error.details[0].message });
-    } else {
-      axios
-        .get(
-          "https://2factor.in/API/V1/c7573668-cfde-11ea-9fa5-0200cd936042/SMS/VERIFY/" +
-            req.body.details +
-            "/" +
-            req.body.otp
-        )
-        .then(async (response) => {
-          if (response.data.Details === "OTP Matched") {
-            const isAlreadyRegistered = await userdb.findOne({
-              phone: req.body.phone,
+      return res.status(400).send({ message: result.error.details[0].message });
+    }
+    axios
+      .get(
+        "https://2factor.in/API/V1/c7573668-cfde-11ea-9fa5-0200cd936042/SMS/VERIFY/" +
+          req.body.details +
+          "/" +
+          req.body.otp
+      )
+      .then(async (response) => {
+        if (response.data.Details === "OTP Matched") {
+          const isAlreadyRegistered = await userdb.findOne({
+            phone: req.body.phone,
+          });
+          if (isAlreadyRegistered) {
+            const p = isAlreadyRegistered._id.toString();
+            const token = jwt.sign({ _id: p }, "123456", {
+              expiresIn: "24h",
             });
-            if (isAlreadyRegistered) {
-              const p = isAlreadyRegistered._id.toString();
+            return res
+              .status(200)
+              .send({ message: "Welcome back", token: token });
+          }
+          const createUser = new userdb({
+            phone: req.body.phone,
+          });
+          createUser
+            .save()
+            .then((a) => {
+              const p = a._id.toString();
               const token = jwt.sign({ _id: p }, "123456", {
                 expiresIn: "24h",
               });
-              res.status(200).send({ message: "Welcome back", token: token });
-            } else {
-              const createUser = new userdb({
-                phone: req.body.phone,
-              });
-              createUser
-                .save()
-                .then((a) => {
-                  const p = a._id.toString();
-                  const token = jwt.sign({ _id: p }, "123456", {
-                    expiresIn: "24h",
-                  });
-                  res
-                    .status(200)
-                    .send({ message: "Registered successful", token: token });
-                })
-                .catch(() => {
-                  res.status(500).send({ message: "Something bad happened" });
-                });
-            }
-          } else if (response.data.Details === "OTP Expired") {
-            res.status(403).send({ message: "OTP Expired" });
-          }
-        })
-        .catch((e) => {
-          res.status(400).send({ message: "OTP Invalid" });
-        });
-    }
+              return res
+                .status(200)
+                .send({ message: "Registered successful", token: token });
+            })
+            .catch(() => {
+              return res
+                .status(500)
+                .send({ message: "Something bad happened" });
+            });
+        } else if (response.data.Details === "OTP Expired") {
+          return res.status(403).send({ message: "OTP Expired" });
+        }
+      })
+      .catch((e) => {
+        return res.status(400).send({ message: "OTP Invalid" });
+      });
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //=============================================update profile======================================//
@@ -120,25 +121,26 @@ exports.updateProfile = async (req, res) => {
         .required();
       const result = profileSchema.validate(body);
       if (result.error) {
-        res.status(400).send({ message: result.error.details[0].message });
+        return res
+          .status(400)
+          .send({ message: result.error.details[0].message });
+      }
+      const updateUserProfile = await userdb.findByIdAndUpdate(req.user._id, {
+        name: req.body.name,
+        dob: req.body.dob,
+        gender: req.body.gender,
+        email: req.body.email,
+      });
+      if (updateUserProfile) {
+        return res.status(200).send({ message: "Profile updated sucessfully" });
       } else {
-        const updateUserProfile = await userdb.findByIdAndUpdate(req.user._id, {
-          name: req.body.name,
-          dob: req.body.dob,
-          gender: req.body.gender,
-          email: req.body.email,
-        });
-        if (updateUserProfile) {
-          res.status(200).send({ message: "Profile updated sucessfully" });
-        } else {
-          res.status(404).send({ message: req.user._id + " not found" });
-        }
+        return res.status(404).send({ message: req.user._id + " not found" });
       }
     } else {
-      res.status(404).send({ message: req.user._id + " not found" });
+      return res.status(404).send({ message: req.user._id + " not found" });
     }
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //====================================get profile================================================//
@@ -151,12 +153,12 @@ exports.getProfile = async (req, res) => {
       _id: 0,
     });
     if (myProfile) {
-      res.status(200).send(myProfile);
+      return res.status(200).send(myProfile);
     } else {
-      res.status(404).send({ message: req.user._id + " not found" });
+      return res.status(404).send({ message: req.user._id + " not found" });
     }
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //===============================get product by sub category========================================//
@@ -183,12 +185,12 @@ exports.getProductBySubCategory = async (req, res) => {
       }
     );
     if (product) {
-      res.status(200).send(product);
+      return res.status(200).send(product);
     } else {
-      res.status(404).send({ message: "Not found" });
+      return res.status(404).send({ message: "Not found" });
     }
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //=======================================get sub category==========================================//
@@ -199,14 +201,14 @@ exports.getSubCategory = async (req, res) => {
       { _id: 0, __v: 0, createdAt: 0, updatedAt: 0, categoryName: 0 }
     );
     if (subCategory) {
-      res.status(200).send(subCategory);
+      return res.status(200).send(subCategory);
     } else {
-      res.status(404).send({
+      return res.status(404).send({
         message: "No sub-category found of category: " + req.params.category,
       });
     }
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //===========================================get category============================================//
@@ -217,14 +219,14 @@ exports.getCategory = async (req, res) => {
       { _id: 0, __v: 0, createdAt: 0, updatedAt: 0 }
     );
     if (category) {
-      res.status(200).send(category);
+      return res.status(200).send(category);
     } else {
-      res.status(404).send({
+      return res.status(404).send({
         message: "Not found",
       });
     }
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //========================================get product by id==========================================//
@@ -239,14 +241,14 @@ exports.getProductById = async (req, res) => {
       productSubCategory: 0,
     });
     if (product) {
-      res.status(200).send(product);
+      return res.status(200).send(product);
     } else {
-      res.status(404).send({
+      return res.status(404).send({
         message: "No product found of id: " + req.params.id,
       });
     }
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //=====================================give review to product=========================//
@@ -259,7 +261,9 @@ exports.giveReview = async (req, res) => {
       .required();
     const validate = reviewSchema.validate(req.body);
     if (validate.error) {
-      res.status(400).send({ message: validate.error.details[0].message });
+      return res
+        .status(400)
+        .send({ message: validate.error.details[0].message });
     } else {
       const product = await productdb.findOneAndUpdate(
         { _id: req.params.id, reviewedBy: { $nin: [req.user._id] } },
@@ -269,17 +273,17 @@ exports.giveReview = async (req, res) => {
         }
       );
       if (product) {
-        res.status(200).send({
+        return res.status(200).send({
           message: "You have given " + req.body.review + " star sucessfully",
         });
       } else {
-        res.status(409).send({
+        return res.status(409).send({
           message: "You have already given review to this product",
         });
       }
     }
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //=============================add to cart==========================================//
@@ -292,7 +296,9 @@ exports.addToCart = async (req, res) => {
       .required();
     const validate = cartSchema.validate(req.body);
     if (validate.error) {
-      res.status(400).send({ message: validate.error.details[0].message });
+      return res
+        .status(400)
+        .send({ message: validate.error.details[0].message });
     } else {
       cartdb
         .findOneAndUpdate(
@@ -302,7 +308,7 @@ exports.addToCart = async (req, res) => {
         )
         .exec(function (err, doc) {
           if (err) {
-            res.status(500).send({ message: err.name });
+            return res.status(500).send({ message: err.name });
           } else {
             const item = doc.cart.findIndex(
               (item) => item.productId == req.body.productId
@@ -314,7 +320,7 @@ exports.addToCart = async (req, res) => {
             }
 
             doc.save().then((e) => {
-              res.status(200).send({
+              return res.status(200).send({
                 message: "Item added to the cart sucessfully",
               });
             });
@@ -322,7 +328,7 @@ exports.addToCart = async (req, res) => {
         });
     }
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
 //=========================================get Cart========================================//
@@ -345,12 +351,14 @@ exports.getCart = async (req, res) => {
         __v: 0,
       });
     if (cart) {
-      res.status(200).send(cart);
+      return res.status(200).send(cart);
     }
   } catch (e) {
-    res.status(400).send({ message: e.name });
+    return res.status(400).send({ message: e.name });
   }
 };
+
+//=========================================remove item from the cart=========================//
 exports.removeItemFromCart = async (req, res) => {
   try {
     const removeItem = Joi.object()
@@ -360,7 +368,9 @@ exports.removeItemFromCart = async (req, res) => {
       .required();
     const validate = removeItem.validate(req.body);
     if (validate.error) {
-      res.status(400).send({ message: validate.error.details[0].message });
+      return res
+        .status(400)
+        .send({ message: validate.error.details[0].message });
     } else {
       const remove = await cartdb.findOneAndUpdate(
         { cartBy: req.user._id },
@@ -369,15 +379,16 @@ exports.removeItemFromCart = async (req, res) => {
         }
       );
       if (remove) {
-        res.status(200).send({ message: "item removed sucessfully" });
+        return res.status(200).send({ message: "item removed sucessfully" });
       } else {
-        res.status(500).send({ message: "Something bad happenned" });
+        return res.status(500).send({ message: "Something bad happenned" });
       }
     }
   } catch (e) {
-    res.status(500).send({ message: e.name });
+    return res.status(500).send({ message: e.name });
   }
 };
+//=================================reduce item from the cart===================================//
 exports.reduceItemFromCart = async (req, res) => {
   try {
     const reduceItem = Joi.object()
@@ -414,12 +425,12 @@ exports.reduceItemFromCart = async (req, res) => {
           cart.cart[val].quantity--;
         }
         cart.save().then((e) => {
-          res.status(200).send({
+          return res.status(200).send({
             message: "Item reduced sucessfully",
           });
         });
       });
   } catch (e) {
-    res.status(500).send();
+    return res.status(500).send({ message: e.name });
   }
 };
