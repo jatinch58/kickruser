@@ -148,3 +148,24 @@ exports.reduceItemFromCart = async (req, res) => {
     return res.status(500).send({ message: e.name });
   }
 };
+//==================================generate bill======================================//
+exports.generateBill = async (req, res) => {
+  try {
+    cartdb
+      .findOne({ cartBy: req.user._id })
+      .populate("cart.productId")
+      .exec((err, cart) => {
+        if (err) {
+          res.status(500).send({ message: err.name });
+        } else {
+          let price = 0;
+          cart.cart.map((val) => {
+            price += val.quantity * val.productId.productOfferPrice;
+          });
+          res.send({ price: price });
+        }
+      });
+  } catch (e) {
+    res.status(500).send({ message: e.name });
+  }
+};
