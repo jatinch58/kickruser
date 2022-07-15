@@ -1,5 +1,7 @@
 const { model, Schema } = require("mongoose");
 const user = require("./user");
+const category = require("./category");
+const subCategory = require("./subCategory");
 const productSchema = new Schema(
   {
     productName: {
@@ -21,16 +23,17 @@ const productSchema = new Schema(
     productImgUrl: [
       {
         type: String,
-        required: true,
       },
     ],
     productCategory: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
+      ref: category,
     },
     productSubCategory: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
+      ref: subCategory,
     },
     productStock: {
       type: Boolean,
@@ -42,24 +45,20 @@ const productSchema = new Schema(
     },
     demolink: {
       type: String,
-      required: true,
     },
-    productReview: {
-      type: Number,
-      default: 0,
-    },
-    numberOfReviews: {
-      type: Number,
-      default: 0,
-    },
-    totalReview: {
-      type: Number,
-      default: 0,
-    },
-    reviewedBy: [
+    productReview: [
       {
-        type: Schema.Types.ObjectId,
-        ref: user,
+        review: {
+          type: Number,
+        },
+        reviewBy: {
+          type: Schema.Types.ObjectId,
+          ref: user,
+        },
+        comment: {
+          type: String,
+          default: "",
+        },
       },
     ],
   },
