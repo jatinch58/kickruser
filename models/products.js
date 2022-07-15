@@ -57,7 +57,6 @@ const productSchema = new Schema(
         },
         comment: {
           type: String,
-          default: "",
         },
       },
     ],

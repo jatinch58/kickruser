@@ -256,6 +256,7 @@ exports.giveReview = async (req, res) => {
     const reviewSchema = Joi.object()
       .keys({
         review: Joi.number().max(5).min(1).required(),
+        comment: Joi.string(),
       })
       .required();
     const validate = reviewSchema.validate(req.body);
@@ -265,15 +266,25 @@ exports.giveReview = async (req, res) => {
         .send({ message: validate.error.details[0].message });
     } else {
       const product = await productdb.findOneAndUpdate(
-        { _id: req.params.id, reviewedBy: { $nin: [req.user._id] } },
         {
-          $inc: { numberOfReviews: 1, productReview: req.body.review },
-          $push: { reviewedBy: req.user._id },
+          _id: req.params.id,
+          productReview: {
+            $not: { $elemMatch: { reviewBy: req.user._id } },
+          },
+        },
+        {
+          $push: {
+            productReview: {
+              review: req.body.review,
+              reviewBy: req.user._id,
+              comment: req.body.comment,
+            },
+          },
         }
       );
       if (product) {
         return res.status(200).send({
-          message: "You have given " + req.body.review + " star sucessfully",
+          message: "Done",
         });
       } else {
         return res.status(409).send({
@@ -283,5 +294,27 @@ exports.giveReview = async (req, res) => {
     }
   } catch (e) {
     return res.status(500).send({ message: e.name });
+  }
+};
+
+exports.canReview = async (req, res) => {
+  try {
+    const product = await productdb.findOne({
+      _id: req.params.id,
+      productReview: {
+        $not: { $elemMatch: { reviewBy: req.user._id } },
+      },
+    });
+    if (product) {
+      return res.status(200).send({
+        message: "yes",
+      });
+    } else {
+      return res.status(409).send({
+        message: "no",
+      });
+    }
+  } catch (e) {
+    res.status(500).send({ message: e.name });
   }
 };
