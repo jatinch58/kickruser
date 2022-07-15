@@ -197,7 +197,7 @@ exports.getSubCategory = async (req, res) => {
   try {
     const subCategory = await subCategorydb.find(
       { categoryName: req.params.category },
-      { _id: 0, __v: 0, createdAt: 0, updatedAt: 0, categoryName: 0 }
+      { __v: 0, createdAt: 0, updatedAt: 0, categoryName: 0 }
     );
     if (subCategory) {
       return res.status(200).send(subCategory);
@@ -215,7 +215,7 @@ exports.getCategory = async (req, res) => {
   try {
     const category = await categorydb.find(
       {},
-      { _id: 0, __v: 0, createdAt: 0, updatedAt: 0 }
+      { __v: 0, createdAt: 0, updatedAt: 0 }
     );
     if (category) {
       return res.status(200).send(category);
