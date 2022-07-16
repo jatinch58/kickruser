@@ -1,13 +1,15 @@
 const { model, Schema } = require("mongoose");
+const category = require("./category");
 const subCategorySchema = new Schema(
   {
     subCategoryName: {
       type: String,
       required: true,
     },
-    categoryName: {
-      type: String,
+    category: {
+      type: Schema.Types.ObjectId,
       required: true,
+      ref: category,
     },
     iconUrl: {
       type: String,

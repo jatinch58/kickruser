@@ -196,7 +196,7 @@ exports.getProductBySubCategory = async (req, res) => {
 exports.getSubCategory = async (req, res) => {
   try {
     const subCategory = await subCategorydb.find(
-      { categoryName: req.params.category },
+      { category: req.params.category },
       { __v: 0, createdAt: 0, updatedAt: 0, categoryName: 0 }
     );
     if (subCategory) {
